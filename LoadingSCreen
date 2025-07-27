@@ -1,0 +1,318 @@
+ocal Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+
+pcall(function() game:GetService("ReplicatedFirst"):RemoveDefaultLoadingScreen() end)
+
+local player = Players.LocalPlayer
+
+-- Remove old loading screen if exists
+if CoreGui:FindFirstChild("IngeniousLoadingScreen") then
+    CoreGui:FindFirstChild("IngeniousLoadingScreen"):Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "IngeniousLoadingScreen"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
+
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+background.Parent = screenGui
+
+local gradient = Instance.new("UIGradient")
+gradient.Rotation = 45
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 10, 40)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 50, 150)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 20, 80))
+}
+gradient.Parent = background
+
+task.spawn(function()
+    while true do
+        gradient.Rotation = (gradient.Rotation + 1) % 360
+        RunService.RenderStepped:Wait()
+    end
+end)
+
+local blur = Instance.new("BlurEffect")
+blur.Name = "LoadingBlurEffect"
+blur.Size = 20
+blur.Parent = Lighting
+
+local function createStar()
+    local star = Instance.new("Frame")
+    star.Size = UDim2.new(0, math.random(6, 12), 0, math.random(6, 12))
+    star.BackgroundColor3 = Color3.fromRGB(math.random(180, 255), math.random(150, 255), math.random(200, 255))
+    star.Position = UDim2.new(math.random(), 0, math.random(), 0)
+    star.BackgroundTransparency = 0.3
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = star
+    local glow = Instance.new("ImageLabel")
+    glow.Image = "rbxassetid://243098098"
+    glow.Size = UDim2.new(2.5, 0, 2.5, 0)
+    glow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    glow.AnchorPoint = Vector2.new(0.5, 0.5)
+    glow.BackgroundTransparency = 1
+    glow.ImageTransparency = 0.5
+    glow.Parent = star
+    star.Parent = background
+
+    task.spawn(function()
+        local tweenInfo = TweenInfo.new(math.random(2, 4), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        local directionX = math.random(-1, 1) * 0.5
+        local directionY = math.random(-1, 1) * 0.5
+        TweenService:Create(star, tweenInfo, {
+            Position = UDim2.new(star.Position.X.Scale + directionX, 0, star.Position.Y.Scale + directionY, 0),
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, math.random(15, 25), 0, math.random(15, 25))
+        }):Play()
+        TweenService:Create(glow, tweenInfo, {ImageTransparency = 1, Size = UDim2.new(3, 0, 3, 0)}):Play()
+        task.wait(tweenInfo.Time)
+        star:Destroy()
+    end)
+end
+
+task.spawn(function()
+    while true do
+        createStar()
+        task.wait(0.1)
+    end
+end)
+
+local function createEnergyLine()
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(0, math.random(100, 300), 0, 3)
+    line.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
+    line.Position = UDim2.new(math.random(), 0, math.random(), 0)
+    line.BackgroundTransparency = 0.7
+    local lineGradient = Instance.new("UIGradient")
+    lineGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 200)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 255, 150))
+    }
+    lineGradient.Parent = line
+    line.Parent = background
+
+    task.spawn(function()
+        local tweenInfo = TweenInfo.new(math.random(2, 4), Enum.EasingStyle.Sine)
+        local directionX = math.random(-1, 1) * 0.3
+        local directionY = math.random(-1, 1) * 0.3
+        TweenService:Create(line, tweenInfo, {
+            Position = UDim2.new(line.Position.X.Scale + directionX, 0, line.Position.Y.Scale + directionY, 0),
+            BackgroundTransparency = 1,
+            Rotation = math.random(-30, 30)
+        }):Play()
+        task.wait(tweenInfo.Time)
+        line:Destroy()
+    end)
+end
+
+task.spawn(function()
+    while true do
+        createEnergyLine()
+        task.wait(0.5)
+    end
+end)
+
+local topText = Instance.new("TextLabel")
+topText.Size = UDim2.new(0.9, 0, 0.07, 0)
+topText.Position = UDim2.new(0.05, 0, 0.02, 0)
+topText.Text = "â ï¸ Sorry for the wait! Anti-cheat bypass needs a few minutes to unblock the script â ï¸"
+topText.Font = Enum.Font.GothamBlack
+topText.TextSize = 18
+topText.TextColor3 = Color3.fromRGB(255, 100, 100)
+topText.BackgroundTransparency = 1
+topText.TextTransparency = 1
+local topStroke = Instance.new("UIStroke")
+topStroke.Color = Color3.fromRGB(255, 255, 255)
+topStroke.Thickness = 1
+topStroke.Parent = topText
+topText.Parent = background
+
+task.spawn(function()
+    task.wait(1)
+    TweenService:Create(topText, TweenInfo.new(2, Enum.EasingStyle.Quad), {TextTransparency = 0.1}):Play()
+    while true do
+        TweenService:Create(topText, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {TextColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+        task.wait(1.5)
+        TweenService:Create(topText, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {TextColor3 = Color3.fromRGB(255, 150, 150)}):Play()
+        task.wait(1.5)
+    end
+end)
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(0.6, 0, 0.1, 0)
+loadingText.Position = UDim2.new(0.2, 0, 0.15, 0)
+loadingText.Text = "Initializing... 0%"
+loadingText.Font = Enum.Font.GothamBlack
+loadingText.TextSize = 30
+loadingText.TextColor3 = Color3.fromRGB(200, 220, 255)
+loadingText.BackgroundTransparency = 1
+loadingText.Parent = background
+
+task.spawn(function()
+    while true do
+        TweenService:Create(loadingText, TweenInfo.new(1, Enum.EasingStyle.Sine), {TextTransparency = 0.4}):Play()
+        task.wait(1)
+        TweenService:Create(loadingText, TweenInfo.new(1, Enum.EasingStyle.Sine), {TextTransparency = 0}):Play()
+        task.wait(1)
+    end
+end)
+
+local freezeText = Instance.new("TextLabel")
+freezeText.Size = UDim2.new(0.5, 0, 0.06, 0)
+freezeText.Position = UDim2.new(0.25, 0, 0.28, 0)
+freezeText.Text = ""
+freezeText.Font = Enum.Font.GothamBold
+freezeText.TextSize = 18
+freezeText.TextColor3 = Color3.fromRGB(255, 150, 150)
+freezeText.BackgroundTransparency = 1
+freezeText.TextTransparency = 1
+freezeText.Parent = background
+
+local progressBarBg = Instance.new("Frame")
+progressBarBg.Size = UDim2.new(0.7, 0, 0.06, 0)
+progressBarBg.Position = UDim2.new(0.15, 0, 0.38, 0)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+progressBarBg.BorderSizePixel = 0
+local cornerBg = Instance.new("UICorner")
+cornerBg.CornerRadius = UDim.new(0, 15)
+cornerBg.Parent = progressBarBg
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(100, 150, 255)
+stroke.Thickness = 3
+stroke.Parent = progressBarBg
+progressBarBg.Parent = background
+
+local progressBarFill = Instance.new("Frame")
+progressBarFill.Size = UDim2.new(0, 0, 1, 0)
+progressBarFill.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
+local fillGradient = Instance.new("UIGradient")
+fillGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 200)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 255, 150))
+}
+fillGradient.Parent = progressBarFill
+local cornerFill = Instance.new("UICorner")
+cornerFill.CornerRadius = UDim.new(0, 15)
+cornerFill.Parent = progressBarFill
+local glowFill = Instance.new("ImageLabel")
+glowFill.Image = "rbxassetid://243098098"
+glowFill.Size = UDim2.new(1, 20, 1, 20)
+glowFill.Position = UDim2.new(0.5, 0, 0.5, 0)
+glowFill.AnchorPoint = Vector2.new(0.5, 0.5)
+glowFill.BackgroundTransparency = 1
+glowFill.ImageTransparency = 0.6
+glowFill.Parent = progressBarFill
+progressBarFill.Parent = progressBarBg
+
+local inviteBtn = Instance.new("TextButton")
+inviteBtn.Size = UDim2.new(0.25, 0, 0.06, 0)
+inviteBtn.Position = UDim2.new(0.37, 0, 0.48, 0)
+inviteBtn.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
+inviteBtn.Text = "Copy Discord Invite"
+inviteBtn.Font = Enum.Font.GothamBold
+inviteBtn.TextSize = 22
+inviteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+inviteBtn.AutoButtonColor = true
+inviteBtn.Parent = background
+local inviteCorner = Instance.new("UICorner")
+inviteCorner.CornerRadius = UDim.new(0, 12)
+inviteCorner.Parent = inviteBtn
+
+local messageLabel = Instance.new("TextLabel")
+messageLabel.Size = UDim2.new(0.7, 0, 0.05, 0)
+messageLabel.Position = UDim2.new(0.15, 0, 0.55, 0)
+messageLabel.Text = ""
+messageLabel.Font = Enum.Font.Gotham
+messageLabel.TextSize = 16
+messageLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+messageLabel.BackgroundTransparency = 1
+messageLabel.Parent = background
+
+local discordInvite = "https://discord.gg/85HscDHgsf"
+
+local clickSound = Instance.new("Sound", inviteBtn)
+clickSound.SoundId = "rbxassetid://12222030"
+clickSound.Volume = 1
+
+inviteBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(discordInvite)
+        messageLabel.Text = "Discord Invite Copied!"
+        inviteBtn.Text = "Invite Copied!"
+        inviteBtn.AutoButtonColor = false
+        inviteBtn.Active = false
+        clickSound:Play()
+    else
+        messageLabel.Text = "Clipboard not supported"
+    end
+end)
+
+local spinner = Instance.new("ImageLabel")
+spinner.Image = "rbxassetid://3926307971"
+spinner.Size = UDim2.new(0, 50, 0, 50)
+spinner.Position = UDim2.new(0.9, -25, 0.1, -25)
+spinner.BackgroundTransparency = 1
+spinner.Parent = background
+
+task.spawn(function()
+    while true do
+        spinner.Rotation = (spinner.Rotation + 1) % 360
+        task.wait()
+    end
+end)
+
+local percent = 0
+local function updateProgress(p)
+    loadingText.Text = "Initializing... " .. math.clamp(p, 0, 100) .. "%"
+    progressBarFill:TweenSize(UDim2.new(p / 100, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Sine, 0.8, true)
+end
+
+local function simulateLoading()
+    local totalTime = 0
+    local targetTime = 480 -- 8 minutes in seconds
+
+    while percent < 100 do
+        local elapsed = 1
+        if percent == 20 or percent == 50 or percent == 80 then
+            freezeText.Text = "â ï¸ Please wait 15-25 seconds..."
+            TweenService:Create(freezeText, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+            local waitTime = math.random(15, 25)
+            task.wait(waitTime)
+            TweenService:Create(freezeText, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+            freezeText.Text = ""
+            elapsed = waitTime
+        else
+            task.wait(elapsed)
+        end
+        totalTime = totalTime + elapsed
+        percent = math.min(100, percent + (100 / targetTime))
+        updateProgress(percent)
+    end
+
+    loadingText.Text = "Initialization Complete!"
+    TweenService:Create(loadingText, TweenInfo.new(1), {TextColor3 = Color3.fromRGB(100, 255, 100)}):Play()
+
+    -- Remove blur after loading
+    if blur and blur.Parent then
+        blur:Destroy()
+    end
+
+    -- Optionally remove loading screen after a delay
+    task.wait(2)
+    if screenGui and screenGui.Parent then
+        screenGui:Destroy()
+    end
+end
+
+task.spawn(simulateLoading)
