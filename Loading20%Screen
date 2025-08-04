@@ -1,0 +1,153 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local camera = workspace.CurrentCamera
+
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+
+local function lockControls()
+    UserInputService.ModalEnabled = true
+    UserInputService.MouseIconEnabled = false
+    camera.CameraType = Enum.CameraType.Scriptable
+    camera.CFrame = workspace.CurrentCamera.CFrame
+end
+
+local function unlockControls()
+    UserInputService.ModalEnabled = false
+    UserInputService.MouseIconEnabled = true
+    camera.CameraType = Enum.CameraType.Custom
+end
+
+local function blockKeys(input, gameProcessed)
+    if gameProcessed then return end
+    if isMobile then return end
+    local blockedKeys = {
+        Enum.KeyCode.Escape,
+        Enum.KeyCode.Back,
+        Enum.KeyCode.Tab,
+        Enum.KeyCode.LeftAlt,
+        Enum.KeyCode.RightAlt,
+        Enum.KeyCode.LeftControl,
+        Enum.KeyCode.RightControl,
+        Enum.KeyCode.LeftShift,
+        Enum.KeyCode.RightShift,
+    }
+    for _, key in ipairs(blockedKeys) do
+        if input.KeyCode == key then
+            return Enum.ContextActionResult.Sink
+        end
+    end
+end
+
+if not isMobile then
+    UserInputService.InputBegan:Connect(blockKeys)
+    UserInputService.InputChanged:Connect(blockKeys)
+    UserInputService.InputEnded:Connect(blockKeys)
+    lockControls()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BeachyLoadingScreen"
+screenGui.ResetOnSpawn = false
+screenGui.DisplayOrder = 9999
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = playerGui
+
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1,0,1,0)
+background.Position = UDim2.new(0,0,0,0)
+background.BackgroundColor3 = Color3.fromRGB(255, 248, 220)
+background.BorderSizePixel = 0
+background.Parent = screenGui
+background.Active = true
+background.Selectable = true
+
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+loadingFrame.Position = UDim2.new(0, 0, 0, 0)
+loadingFrame.BackgroundTransparency = 1
+loadingFrame.Parent = screenGui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 60)
+title.Position = UDim2.new(0, 0, 0.35, -30)
+title.BackgroundTransparency = 1
+title.Text = "🌴 Grow A Garden Spawner 🌺"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 44
+title.TextColor3 = Color3.fromRGB(0, 102, 153)
+title.Parent = loadingFrame
+
+local progressBg = Instance.new("Frame")
+progressBg.Size = UDim2.new(0.7, 0, 0, 30)
+progressBg.Position = UDim2.new(0.15, 0, 0.5, 0)
+progressBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+progressBg.BorderSizePixel = 0
+progressBg.Parent = loadingFrame
+progressBg.AnchorPoint = Vector2.new(0,0)
+
+local progressFill = Instance.new("Frame")
+progressFill.Size = UDim2.new(0, 0, 1, 0)
+progressFill.BackgroundColor3 = Color3.fromRGB(0, 153, 153)
+progressFill.BorderSizePixel = 0
+progressFill.Parent = progressBg
+
+local percentLabel = Instance.new("TextLabel")
+percentLabel.Size = UDim2.new(1, 0, 1, 0)
+percentLabel.BackgroundTransparency = 1
+percentLabel.Text = "0%"
+percentLabel.Font = Enum.Font.Gotham
+percentLabel.TextSize = 24
+percentLabel.TextColor3 = Color3.fromRGB(0, 102, 102)
+percentLabel.Parent = progressBg
+
+local loadingMessage = Instance.new("TextLabel")
+loadingMessage.Size = UDim2.new(1, 0, 0, 30)
+loadingMessage.Position = UDim2.new(0, 0, 0.55, 10)
+loadingMessage.BackgroundTransparency = 1
+loadingMessage.Text = "Initializing spawner module..."
+loadingMessage.Font = Enum.Font.GothamItalic
+loadingMessage.TextSize = 24
+loadingMessage.TextColor3 = Color3.fromRGB(0, 102, 102)
+loadingMessage.Parent = loadingFrame
+
+local loadingStages = {
+    "Initializing spawner module...",
+    "Gathering seed data...",
+    "Calibrating growth parameters...",
+    "Preparing soil matrix...",
+    "Activating water supply...",
+    "Spawning seedlings...",
+    "Growing roots...",
+    "Energizing photosynthesis...",
+    "Summoning pollinators...",
+    "Nurturing plant life...",
+    "Finalizing garden layout..."
+}
+
+local totalSteps = 100
+local totalTime = 300 -- 5 minutes
+local waitTime = totalTime / totalSteps
+
+local function updateLoadingMessage(step)
+    local stageIndex = math.floor((step / totalSteps) * #loadingStages) + 1
+    if stageIndex > #loadingStages then
+        stageIndex = #loadingStages
+    end
+    loadingMessage.Text = loadingStages[stageIndex]
+end
+
+for i = 0, totalSteps do
+    updateLoadingMessage(i)
+    progressFill:TweenSize(UDim2.new(i/totalSteps, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, waitTime, true)
+    percentLabel.Text = i .. "%"
+    wait(waitTime)
+end
+
+screenGui:Destroy()
+if not isMobile then
+    unlockControls()
+end
